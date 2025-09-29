@@ -1,0 +1,39 @@
+[tool.poetry]
+name = "ld35_service"
+description = "VizuMarker - Automatic marker detection (LD-3.5) service for large texts"
+version = "0.1.0"
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "^0.104.1"
+uvicorn = "^0.24.0"
+pydantic = "^2.5.0"
+pydantic-settings = "^2.1.0"
+sqlalchemy = "^2.0.23"
+alembic = "^1.13.0"
+celery = "^5.3.0"
+redis = "^5.0.1"
+python-multipart = "^0.0.6"
+python-docx = "^0.8.11"
+weasyprint = "^60.1"  # For PDF generation
+markdown = "^3.5.1"
+numpy = "^1.26.0"
+requests = "^2.31.0"
+PyYAML = "^6.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-asyncio = "^0.21.0"
+httpx = "^0.25.0"
+black = "^23.11.0"
+flake8 = "^6.1.0"
+mypy = "^1.8.0"
+isort = "^5.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+dev = "ld35_service.main:main"

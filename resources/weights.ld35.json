@@ -1,0 +1,6 @@
+{
+  "atomic": { "default_weight": 1.0, "min_score": 0.45 },
+  "composed": { "min_children": 1, "min_score": 0.6 },
+  "overlap_resolver": { "prefer_family": ["SEM", "CLU", "ATO", "MEMA"], "prefer_longer_span": false },
+  "gates": { "min_total_markers": 5, "min_segments": 2 }
+}

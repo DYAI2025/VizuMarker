@@ -1,0 +1,31 @@
+{
+  "promotions": [
+    {
+      "marker_id": "SEM_BEWEISLAST_VERSCHIEBUNG",
+      "activate_when": "score >= 0.7",
+      "promote_to": "SEM",
+      "level": "core",
+      "min_score": 0.7
+    },
+    {
+      "marker_id": "SEM_DOPPELBINDUNG",
+      "activate_when": "score >= 0.6",
+      "promote_to": "SEM",
+      "level": "core",
+      "min_score": 0.6
+    },
+    {
+      "marker_id": "CLU_TRANSPARENZREGEL",
+      "activate_when": "score >= 0.55",
+      "promote_to": "CLU",
+      "level": "core",
+      "min_score": 0.55
+    }
+  ],
+  "overrides": [],
+  "conflict_rules": {
+    "prefer_family": ["SEM", "CLU", "ATO", "MEMA"],
+    "prefer_higher_severity": true,
+    "prefer_longer_span": false
+  }
+}

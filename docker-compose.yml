@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  ld35-service:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - STORAGE_PATH=/app/storage
+      - SECRET_KEY=your-super-secret-key-change-in-production
+      - LD35_MODEL_PATH=/models/ld35_model
+    volumes:
+      - ./storage:/app/storage
+      - ./models:/models  # Mount LD-3.5 models if available
+    depends_on:
+      - redis
+    command: uvicorn ld35_service.main:app --host 0.0.0.0 --port 8000 --workers 4
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  celery-worker:
+    build: .
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - STORAGE_PATH=/app/storage
+      - SECRET_KEY=your-super-secret-key-change-in-production
+    volumes:
+      - ./storage:/app/storage
+      - ./models:/models
+    depends_on:
+      - redis
+      - ld35-service
+    command: celery -A ld35_service.workers.annotation_tasks.celery_app worker --loglevel=info
+
+  celery-beat:
+    build: .
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - STORAGE_PATH=/app/storage
+      - SECRET_KEY=your-super-secret-key-change-in-production
+    volumes:
+      - ./storage:/app/storage
+    depends_on:
+      - redis
+    command: celery -A ld35_service.workers.annotation_tasks.celery_app beat --loglevel=info
+
+volumes:
+  redis_data:

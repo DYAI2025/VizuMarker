@@ -1,0 +1,72 @@
+{
+  "version": "ld35",
+  "markers": [
+    {
+      "id": "SEM_EVIDENCE_PHRASE",
+      "family": "SEM",
+      "kind": "atomic",
+      "detects": [
+        {"regex": "(mit|ohne)\\s+Beweis(e|en)", "flags": "i", "anchor_group": 0},
+        {"regex": "beweisen|beleg(en|t)|nachweis(en|e)|Beweislast", "flags": "i", "anchor_group": 0},
+        {"regex": "du\\s+willst\\s+ja\\s+finden", "flags": "i", "anchor_group": 0}
+      ],
+      "severity": 0.6
+    },
+    {
+      "id": "SEM_CATCH22",
+      "family": "SEM",
+      "kind": "atomic",
+      "detects": [
+        {"regex": "catch\\s*-?\\s*22", "flags": "i", "anchor_group": 0},
+        {"regex": "Doppel(\\s|-)?bindung", "flags": "i", "anchor_group": 0}
+      ],
+      "severity": 0.55
+    },
+    {
+      "id": "CLU_RULE_PHRASE",
+      "family": "CLU",
+      "kind": "atomic",
+      "detects": [
+        {"regex": "wenn\\s+wir\\s+uns\\s+trennen\\s+und\\s+wieder\\s+dat(en|en),\\s*sagen\\s+wir\\s+es\\s+einander", "flags": "i", "anchor_group": 0},
+        {"regex": "Absprache|Regel|Verbindlichkeit", "flags": "i", "anchor_group": 0}
+      ],
+      "severity": 0.55
+    },
+    {
+      "id": "SEM_BEWEISLAST_VERSCHIEBUNG",
+      "family": "SEM",
+      "kind": "composed",
+      "composed_of": [
+        {"marker_id": "SEM_EVIDENCE_PHRASE", "weight": 1.0}
+      ],
+      "activation": "SEM_EVIDENCE_PHRASE >= 1",
+      "span_policy": {"mode": "sentence_union", "max_sentence_span": 1, "fallback": "anchor_window", "window_tokens": [-8, 8]},
+      "evidence_policy": "union",
+      "severity": 0.7
+    },
+    {
+      "id": "SEM_DOPPELBINDUNG",
+      "family": "SEM",
+      "kind": "composed",
+      "composed_of": [
+        {"marker_id": "SEM_CATCH22", "weight": 1.0}
+      ],
+      "activation": "SEM_CATCH22 >= 1",
+      "span_policy": {"mode": "sentence_union", "max_sentence_span": 1, "fallback": "anchor_window", "window_tokens": [-6, 6]},
+      "evidence_policy": "union",
+      "severity": 0.65
+    },
+    {
+      "id": "CLU_TRANSPARENZREGEL",
+      "family": "CLU",
+      "kind": "composed",
+      "composed_of": [
+        {"marker_id": "CLU_RULE_PHRASE", "weight": 1.0}
+      ],
+      "activation": "CLU_RULE_PHRASE >= 1",
+      "span_policy": {"mode": "sentence_union", "max_sentence_span": 1, "fallback": "anchor_window", "window_tokens": [-6, 6]},
+      "evidence_policy": "union",
+      "severity": 0.6
+    }
+  ]
+}
