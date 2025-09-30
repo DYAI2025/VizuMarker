@@ -1,31 +1,44 @@
 {
+  "version": "ld35",
   "promotions": [
     {
       "marker_id": "SEM_BEWEISLAST_VERSCHIEBUNG",
-      "activate_when": "score >= 0.7",
+      "activate_when": "score >= 0.7 && total_children >= 1",
       "promote_to": "SEM",
       "level": "core",
-      "min_score": 0.7
+      "min_score": 0.7,
+      "priority": 1
+    },
+    {
+      "marker_id": "SEM_GASLIGHTING_PATTERN",
+      "activate_when": "score >= 0.8 && total_children >= 1",
+      "promote_to": "SEM",
+      "level": "core",
+      "min_score": 0.8,
+      "priority": 1
     },
     {
       "marker_id": "SEM_DOPPELBINDUNG",
-      "activate_when": "score >= 0.6",
+      "activate_when": "score >= 0.65 && total_children >= 1",
       "promote_to": "SEM",
       "level": "core",
-      "min_score": 0.6
+      "min_score": 0.65,
+      "priority": 2
     },
     {
       "marker_id": "CLU_TRANSPARENZREGEL",
-      "activate_when": "score >= 0.55",
+      "activate_when": "score >= 0.6 && total_children >= 1",
       "promote_to": "CLU",
       "level": "core",
-      "min_score": 0.55
+      "min_score": 0.6,
+      "priority": 3
     }
   ],
   "overrides": [],
   "conflict_rules": {
     "prefer_family": ["SEM", "CLU", "ATO", "MEMA"],
     "prefer_higher_severity": true,
-    "prefer_longer_span": false
+    "prefer_longer_span": false,
+    "prefer_composed_over_atomic": true
   }
 }

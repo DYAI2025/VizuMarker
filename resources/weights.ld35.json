@@ -1,6 +1,41 @@
 {
-  "atomic": { "default_weight": 1.0, "min_score": 0.45 },
-  "composed": { "min_children": 1, "min_score": 0.6 },
-  "overlap_resolver": { "prefer_family": ["SEM", "CLU", "ATO", "MEMA"], "prefer_longer_span": false },
-  "gates": { "min_total_markers": 5, "min_segments": 2 }
+  "version": "ld35",
+  "atomic": {
+    "default_weight": 1.0,
+    "min_score": 0.5,
+    "scoring_method": "pattern_strength"
+  },
+  "composed": {
+    "min_children": 1,
+    "min_score": 0.65,
+    "activation_threshold": 0.6,
+    "weight_normalization": "sum_based"
+  },
+  "overlap_resolver": {
+    "prefer_family": ["SEM", "CLU", "ATO", "MEMA"],
+    "prefer_longer_span": false,
+    "prefer_composed_over_atomic": true,
+    "prefer_higher_score": true
+  },
+  "span_policies": {
+    "sentence_union": {
+      "max_sentence_span": 2,
+      "fallback_mode": "anchor_window"
+    },
+    "anchor_window": {
+      "default_tokens": [-8, 8],
+      "chars_per_token": 4
+    }
+  },
+  "gates": {
+    "min_total_markers": 3,
+    "min_segments": 1,
+    "min_semantic_depth": 0.4
+  },
+  "families": {
+    "SEM": { "priority": 1, "min_score": 0.65 },
+    "CLU": { "priority": 2, "min_score": 0.6 },
+    "ATO": { "priority": 3, "min_score": 0.5 },
+    "MEMA": { "priority": 4, "min_score": 0.7 }
+  }
 }

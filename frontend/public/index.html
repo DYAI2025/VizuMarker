@@ -1,711 +1,979 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VizuMarker Viewer</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
 
-        .upload-section {
-            margin-bottom: 20px;
-        }
+      .upload-section {
+        margin-bottom: 20px;
+        position: relative;
+      }
 
-        textarea {
-            width: 100%;
-            height: 200px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            resize: vertical;
-        }
+      textarea {
+        width: 100%;
+        height: 200px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        resize: vertical;
+        transition: all 0.3s ease;
+      }
 
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 5px;
-        }
+      textarea.drag-over {
+        border: 2px dashed #007bff;
+        background-color: #f0f8ff;
+        box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+      }
 
-        button:hover {
-            background-color: #0056b3;
-        }
+      .drop-zone-info {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #007bff;
+        font-weight: bold;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: 2px dashed #007bff;
+        font-size: 16px;
+      }
 
-        .controls {
-            margin: 15px 0;
-        }
+      .file-info {
+        margin-top: 10px;
+        padding: 8px 12px;
+        background-color: #e7f3ff;
+        border: 1px solid #b3d9ff;
+        border-radius: 4px;
+        font-size: 14px;
+        color: #0066cc;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
 
-        :root {
-            --color-sem: #ffe066;
-            --color-clu: #74c0fc;
-            --color-ato: #ff8787;
-            --color-mema: #8ce99a;
-            --color-aux: #b197fc;
-            --color-default: #ffe066;
-        }
+      button:hover {
+        background-color: #0056b3;
+      }
 
-        .legend {
-            margin: 15px 0;
-            padding: 12px 14px;
-            background-color: #f8f9fa;
-            border-left: 4px solid #007bff;
-            border-radius: 4px;
-        }
+      .controls {
+        margin: 15px 0;
+      }
 
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 6px 0;
-            font-size: 0.95rem;
-        }
+      :root {
+        --color-sem: #ffe066;
+        --color-clu: #74c0fc;
+        --color-ato: #ff8787;
+        --color-mema: #8ce99a;
+        --color-aux: #b197fc;
+        --color-default: #ffe066;
+      }
 
-        .legend-swatch {
-            width: 16px;
-            height: 16px;
-            border-radius: 3px;
-            border: 1px solid rgba(0, 0, 0, 0.2);
-            flex-shrink: 0;
-        }
+      .legend {
+        margin: 15px 0;
+        padding: 12px 14px;
+        background-color: #f8f9fa;
+        border-left: 4px solid #007bff;
+        border-radius: 4px;
+      }
 
-        .legend-label {
-            line-height: 1.3;
-        }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 6px 0;
+        font-size: 0.95rem;
+      }
 
-        .hl {
-            padding: 1px 2px;
-            border-radius: 2px;
-            transition: background-color 0.2s ease;
-        }
+      .legend-swatch {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        flex-shrink: 0;
+      }
 
-        .hl.SEM,
-        .legend-swatch.SEM {
-            background-color: var(--color-sem);
-        }
+      .legend-label {
+        line-height: 1.3;
+      }
 
-        .hl.CLU,
-        .legend-swatch.CLU {
-            background-color: var(--color-clu);
-        }
+      .hl {
+        padding: 1px 2px;
+        border-radius: 2px;
+        transition: background-color 0.2s ease;
+      }
 
-        .hl.ATO,
-        .legend-swatch.ATO {
-            background-color: var(--color-ato);
-        }
+      .hl.SEM,
+      .legend-swatch.SEM {
+        background-color: var(--color-sem);
+      }
 
-        .hl.MEMA,
-        .legend-swatch.MEMA {
-            background-color: var(--color-mema);
-        }
+      .hl.CLU,
+      .legend-swatch.CLU {
+        background-color: var(--color-clu);
+      }
 
-        .hl.AUX,
-        .legend-swatch.AUX {
-            background-color: var(--color-aux);
-        }
+      .hl.ATO,
+      .legend-swatch.ATO {
+        background-color: var(--color-ato);
+      }
 
-        .hl:not(.SEM):not(.CLU):not(.ATO):not(.MEMA):not(.AUX) {
-            background-color: var(--color-default);
-        }
+      .hl.MEMA,
+      .legend-swatch.MEMA {
+        background-color: var(--color-mema);
+      }
 
-        .document-viewer {
-            margin-top: 20px;
-            line-height: 1.6;
-            min-height: 300px;
-            white-space: pre-wrap;
-        }
+      .hl.AUX,
+      .legend-swatch.AUX {
+        background-color: var(--color-aux);
+      }
 
-        .marker-summary {
-            margin: 15px 0;
-            padding: 12px 14px;
-            background: #ffffff;
-            border: 1px solid #e3e7ed;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
+      .hl:not(.SEM):not(.CLU):not(.ATO):not(.MEMA):not(.AUX) {
+        background-color: var(--color-default);
+      }
 
-        .marker-summary h3 {
-            margin-top: 0;
-        }
+      .document-viewer {
+        margin-top: 20px;
+        line-height: 1.6;
+        min-height: 300px;
+        white-space: pre-wrap;
+      }
 
-        .marker-summary-body {
-            overflow-x: auto;
-        }
+      .marker-summary {
+        margin: 15px 0;
+        padding: 12px 14px;
+        background: #ffffff;
+        border: 1px solid #e3e7ed;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
 
-        .marker-summary table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.95rem;
-        }
+      .marker-summary h3 {
+        margin-top: 0;
+      }
 
-        .marker-summary th,
-        .marker-summary td {
-            padding: 6px 8px;
-            border-bottom: 1px solid #dee2e6;
-            text-align: left;
-        }
+      .marker-summary-body {
+        overflow-x: auto;
+      }
 
-        .marker-summary tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
+      .marker-summary table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
 
-        .marker-summary tbody tr:hover {
-            background-color: #eef3ff;
-        }
+      .marker-summary th,
+      .marker-summary td {
+        padding: 6px 8px;
+        border-bottom: 1px solid #dee2e6;
+        text-align: left;
+      }
 
-        .export-buttons {
-            margin-top: 15px;
-        }
+      .marker-summary tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+      }
 
-        .status {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 4px;
-        }
+      .marker-summary tbody tr:hover {
+        background-color: #eef3ff;
+      }
 
-        .status.success {
-            background-color: #d4edda;
-            color: #155724;
-        }
+      .export-buttons {
+        margin-top: 15px;
+      }
 
-        .status.error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
+      .status {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 4px;
+      }
 
-        .pagination {
-            margin: 10px 0;
-            text-align: center;
-        }
+      .status.success {
+        background-color: #d4edda;
+        color: #155724;
+      }
 
-        .page-btn {
-            margin: 0 2px;
-            padding: 5px 10px;
-        }
+      .status.error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+
+      .pagination {
+        margin: 10px 0;
+        text-align: center;
+      }
+
+      .page-btn {
+        margin: 0 2px;
+        padding: 5px 10px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>VizuMarker - Document Annotation Viewer</h1>
+      <h1>VizuMarker - Document Annotation Viewer</h1>
 
-        <div class="upload-section">
-            <h3>Upload or Paste Text</h3>
-            <textarea id="inputText" placeholder="Paste your text here for annotation..."></textarea>
-            <div class="controls">
-                <button id="apiCallBtn">Analyze with LD-3.5</button>
-                <button id="loadExampleBtn">Load Example</button>
-                <label>
-                    <input type="checkbox" id="showLegend"> Show Legend
-                </label>
-            </div>
+      <div class="upload-section">
+        <h3>Upload or Paste Text</h3>
+        <textarea
+          id="inputText"
+          placeholder="Paste your text here for annotation or drag and drop text files..."
+        ></textarea>
+        <div id="dropZoneInfo" class="drop-zone-info">
+          📄 Drop text files here to analyze
         </div>
-
-        <div class="export-buttons">
-            <button id="exportJsonBtn">Export AXF-JSON</button>
-            <button id="exportHtmlBtn">Export HTML</button>
-            <button id="exportBioBtn">Export BIO-TSV</button>
-            <button id="exportMdBtn">Export Markdown</button>
+        <div id="fileInfo" class="file-info" style="display: none"></div>
+        <div class="controls">
+          <button id="apiCallBtn">Analyze with LD-3.5</button>
+          <button id="loadExampleBtn">Load Example</button>
+          <label> <input type="checkbox" id="showLegend" /> Show Legend </label>
         </div>
+      </div>
 
-        <div id="status" class="status" style="display: none;"></div>
+      <div class="export-buttons">
+        <button id="exportJsonBtn">Export AXF-JSON</button>
+        <button id="exportHtmlBtn">Export HTML</button>
+        <button id="exportBioBtn">Export BIO-TSV</button>
+        <button id="exportMdBtn">Export Markdown</button>
+      </div>
 
-        <div id="legend" class="legend" style="display: none;">
-            <h3>Annotation Legend</h3>
-            <div id="legendContent"></div>
+      <div id="status" class="status" style="display: none"></div>
+
+      <div id="legend" class="legend" style="display: none">
+        <h3>Annotation Legend</h3>
+        <div id="legendContent"></div>
+      </div>
+
+      <div id="markerSummary" class="marker-summary" style="display: none">
+        <h3>Detected Markers</h3>
+        <div class="marker-summary-body">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Marker</th>
+                <th>Family</th>
+                <th>Span</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody id="markerSummaryRows"></tbody>
+          </table>
         </div>
+      </div>
 
-        <div id="markerSummary" class="marker-summary" style="display: none;">
-            <h3>Detected Markers</h3>
-            <div class="marker-summary-body">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Marker</th>
-                            <th>Family</th>
-                            <th>Span</th>
-                            <th>Score</th>
-                        </tr>
-                    </thead>
-                    <tbody id="markerSummaryRows"></tbody>
-                </table>
-            </div>
-        </div>
+      <div class="pagination" id="pagination" style="display: none">
+        <button class="page-btn" id="prevPage">Previous</button>
+        <span id="pageInfo"></span>
+        <button class="page-btn" id="nextPage">Next</button>
+      </div>
 
-        <div class="pagination" id="pagination" style="display: none;">
-            <button class="page-btn" id="prevPage">Previous</button>
-            <span id="pageInfo"></span>
-            <button class="page-btn" id="nextPage">Next</button>
-        </div>
-
-        <div id="documentViewer" class="document-viewer">
-            <!-- Annotated document content will appear here -->
-        </div>
+      <div id="documentViewer" class="document-viewer">
+        <!-- Annotated document content will appear here -->
+      </div>
     </div>
 
     <script>
-        const sampleText = `Artificial intelligence (AI) is intelligence demonstrated by machines, in contrast to the natural intelligence displayed by humans and animals. Leading AI textbooks define the field as the study of "intelligent agents": any device that perceives its environment and takes actions that maximize its chance of successfully achieving its goals. Colloquially, the term "artificial intelligence" is often used to describe machines (or computers) that mimic "cognitive" functions that humans associate with the human mind, such as "learning" and "problem solving".`;
+      const sampleText = `Artificial intelligence (AI) is intelligence demonstrated by machines, in contrast to the natural intelligence displayed by humans and animals. Leading AI textbooks define the field as the study of "intelligent agents": any device that perceives its environment and takes actions that maximize its chance of successfully achieving its goals. Colloquially, the term "artificial intelligence" is often used to describe machines (or computers) that mimic "cognitive" functions that humans associate with the human mind, such as "learning" and "problem solving".`;
 
-        const resolvedOrigin = window.location.origin || '';
-        const API_BASE = resolvedOrigin.startsWith('http') ? resolvedOrigin : 'http://127.0.0.1:8000';
-        const LARGE_TEXT_THRESHOLD = 200000;
+      const resolvedOrigin = window.location.origin || "";
+      const API_BASE = resolvedOrigin.startsWith("http")
+        ? resolvedOrigin
+        : "http://127.0.0.1:8001";
+      const LARGE_TEXT_THRESHOLD = 200000;
 
-        const inputTextElement = document.getElementById('inputText');
-        const apiCallBtn = document.getElementById('apiCallBtn');
-        const loadExampleBtn = document.getElementById('loadExampleBtn');
-        const showLegendCheckbox = document.getElementById('showLegend');
-        const legendDiv = document.getElementById('legend');
-        const legendContent = document.getElementById('legendContent');
-        const markerSummaryDiv = document.getElementById('markerSummary');
-        const markerSummaryRows = document.getElementById('markerSummaryRows');
-        const documentViewer = document.getElementById('documentViewer');
-        const statusDiv = document.getElementById('status');
-        const exportJsonBtn = document.getElementById('exportJsonBtn');
-        const exportHtmlBtn = document.getElementById('exportHtmlBtn');
-        const exportBioBtn = document.getElementById('exportBioBtn');
-        const exportMdBtn = document.getElementById('exportMdBtn');
-        const paginationDiv = document.getElementById('pagination');
-        const prevPageBtn = document.getElementById('prevPage');
-        const nextPageBtn = document.getElementById('nextPage');
-        const pageInfo = document.getElementById('pageInfo');
+      const inputTextElement = document.getElementById("inputText");
+      const apiCallBtn = document.getElementById("apiCallBtn");
+      const loadExampleBtn = document.getElementById("loadExampleBtn");
+      const showLegendCheckbox = document.getElementById("showLegend");
+      const legendDiv = document.getElementById("legend");
+      const legendContent = document.getElementById("legendContent");
+      const markerSummaryDiv = document.getElementById("markerSummary");
+      const markerSummaryRows = document.getElementById("markerSummaryRows");
+      const documentViewer = document.getElementById("documentViewer");
+      const statusDiv = document.getElementById("status");
+      const exportJsonBtn = document.getElementById("exportJsonBtn");
+      const exportHtmlBtn = document.getElementById("exportHtmlBtn");
+      const exportBioBtn = document.getElementById("exportBioBtn");
+      const exportMdBtn = document.getElementById("exportMdBtn");
+      const paginationDiv = document.getElementById("pagination");
+      const prevPageBtn = document.getElementById("prevPage");
+      const nextPageBtn = document.getElementById("nextPage");
+      const pageInfo = document.getElementById("pageInfo");
+      const dropZoneInfo = document.getElementById("dropZoneInfo");
+      const fileInfo = document.getElementById("fileInfo");
 
-        let currentPage = 0;
-        const pageSize = 500;
-        let textToDisplay = '';
-        let annotationsToDisplay = [];
-        let currentDocId = null;
-        let currentText = '';
-        let currentAnnotations = [];
+      let currentPage = 0;
+      const pageSize = 500;
+      let textToDisplay = "";
+      let annotationsToDisplay = [];
+      let currentDocId = null;
+      let currentText = "";
+      let currentAnnotations = [];
 
-        loadExampleBtn.addEventListener('click', () => {
-            inputTextElement.value = sampleText;
-            showStatus('Example text loaded. You can now analyse it.', 'success');
+      // Initialize drag and drop functionality
+      initializeDragAndDrop();
+
+      function initializeDragAndDrop() {
+        // Prevent default drag behaviors for the entire page
+        ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+          document.addEventListener(eventName, preventDefaults, false);
+          inputTextElement.addEventListener(eventName, preventDefaults, false);
         });
 
-        apiCallBtn.addEventListener('click', async () => {
-            const text = inputTextElement.value.trim();
+        // Add drag and drop event listeners to textarea
+        inputTextElement.addEventListener("dragenter", handleDragEnter, false);
+        inputTextElement.addEventListener("dragover", handleDragOver, false);
+        inputTextElement.addEventListener("dragleave", handleDragLeave, false);
+        inputTextElement.addEventListener("drop", handleFileDrop, false);
+      }
 
-            if (!text) {
-                showStatus('Please enter some text to analyze', 'error');
-                return;
-            }
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
 
-            if (text.length > LARGE_TEXT_THRESHOLD) {
-                await handleLargeText(text);
-            } else {
-                await handleSmallText(text);
+      function handleDragEnter(e) {
+        inputTextElement.classList.add("drag-over");
+        dropZoneInfo.style.opacity = "1";
+      }
+
+      function handleDragOver(e) {
+        // Keep the drag-over state
+      }
+
+      function handleDragLeave(e) {
+        // Only remove styling if we're leaving the textarea itself
+        if (!inputTextElement.contains(e.relatedTarget)) {
+          inputTextElement.classList.remove("drag-over");
+          dropZoneInfo.style.opacity = "0";
+        }
+      }
+
+      async function handleFileDrop(e) {
+        inputTextElement.classList.remove("drag-over");
+        dropZoneInfo.style.opacity = "0";
+
+        const files = Array.from(e.dataTransfer.files);
+
+        if (files.length === 0) {
+          showStatus("No files were dropped.", "error");
+          return;
+        }
+
+        if (files.length > 1) {
+          showStatus("Please drop only one file at a time.", "error");
+          return;
+        }
+
+        const file = files[0];
+
+        // Check if it's a text file
+        if (!isTextFile(file)) {
+          showStatus(
+            `File type "${
+              file.type || "unknown"
+            }" is not supported. Please drop text files (.txt, .md, .log, etc.).`,
+            "error"
+          );
+          return;
+        }
+
+        // Check file size (limit to 10MB)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+          showStatus(
+            "File is too large. Please use files smaller than 10MB.",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          showStatus(`Loading file: ${file.name}...`, "success");
+          const text = await readFileAsText(file);
+
+          if (!text.trim()) {
+            showStatus("The file appears to be empty.", "error");
+            return;
+          }
+
+          inputTextElement.value = text;
+          showStatus(
+            `File "${file.name}" loaded successfully! You can now analyze it.`,
+            "success"
+          );
+
+          // Auto-analyze if the text is not too large
+          if (text.length <= LARGE_TEXT_THRESHOLD) {
+            setTimeout(() => {
+              apiCallBtn.click();
+            }, 1000);
+          }
+        } catch (error) {
+          console.error("Error reading file:", error);
+          showStatus(`Error reading file: ${error.message}`, "error");
+        }
+      }
+
+      function isTextFile(file) {
+        // Check MIME type
+        if (file.type.startsWith("text/")) {
+          return true;
+        }
+
+        // Check file extension for common text file types
+        const textExtensions = [
+          ".txt",
+          ".md",
+          ".log",
+          ".csv",
+          ".tsv",
+          ".json",
+          ".xml",
+          ".html",
+          ".htm",
+          ".js",
+          ".ts",
+          ".py",
+          ".java",
+          ".cpp",
+          ".c",
+          ".h",
+          ".css",
+          ".scss",
+          ".sass",
+          ".yml",
+          ".yaml",
+          ".ini",
+          ".conf",
+          ".config",
+          ".properties",
+          ".sql",
+        ];
+
+        const fileName = file.name.toLowerCase();
+        return textExtensions.some((ext) => fileName.endsWith(ext));
+      }
+
+      function readFileAsText(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+
+          reader.onload = function (e) {
+            resolve(e.target.result);
+          };
+
+          reader.onerror = function () {
+            reject(new Error("Failed to read file"));
+          };
+
+          reader.readAsText(file, "UTF-8");
+        });
+      }
+
+      loadExampleBtn.addEventListener("click", () => {
+        inputTextElement.value = sampleText;
+        showStatus("Example text loaded. You can now analyse it.", "success");
+      });
+
+      apiCallBtn.addEventListener("click", async () => {
+        const text = inputTextElement.value.trim();
+
+        if (!text) {
+          showStatus("Please enter some text to analyze", "error");
+          return;
+        }
+
+        if (text.length > LARGE_TEXT_THRESHOLD) {
+          await handleLargeText(text);
+        } else {
+          await handleSmallText(text);
+        }
+      });
+
+      showLegendCheckbox.addEventListener("change", () => {
+        legendDiv.style.display =
+          showLegendCheckbox.checked && annotationsToDisplay.length > 0
+            ? "block"
+            : "none";
+      });
+
+      exportJsonBtn.addEventListener("click", () => exportResult("json"));
+      exportHtmlBtn.addEventListener("click", () => exportResult("html"));
+      exportBioBtn.addEventListener("click", () => exportResult("bio"));
+      exportMdBtn.addEventListener("click", () => exportResult("md"));
+
+      prevPageBtn.addEventListener("click", () => {
+        if (currentPage > 0) {
+          currentPage--;
+          renderPage();
+        }
+      });
+
+      nextPageBtn.addEventListener("click", () => {
+        const totalPages = Math.max(
+          1,
+          Math.ceil(textToDisplay.length / pageSize)
+        );
+        if (currentPage < totalPages - 1) {
+          currentPage++;
+          renderPage();
+        }
+      });
+
+      async function handleSmallText(text) {
+        showStatus("Analyzing text with LD-3.5...", "success");
+
+        try {
+          const response = await fetch(
+            `${API_BASE}/api/v1/annotation/annotate`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ text }),
             }
+          );
+
+          if (!response.ok) {
+            throw await buildFetchError(response);
+          }
+
+          const data = await response.json();
+          const docId = data.doc_id;
+          const annotations = data.annotations || [];
+          const resolvedText = data.text || text;
+
+          applyAnnotationsToText(resolvedText, annotations, docId);
+          showStatus("Analysis complete!", "success");
+        } catch (error) {
+          console.error(error);
+          showStatus(`Error: ${error.message}`, "error");
+        }
+      }
+
+      async function handleLargeText(text) {
+        showStatus("Submitting large text for server processing...", "success");
+
+        const docId = `doc_${Date.now()}`;
+
+        try {
+          const response = await fetch(
+            `${API_BASE}/api/v1/annotation/annotate-batch`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                documents: [
+                  {
+                    id: docId,
+                    text,
+                  },
+                ],
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            throw await buildFetchError(response);
+          }
+
+          const payload = await response.json();
+          const jobId = payload.job_id;
+
+          documentViewer.innerHTML = `<div class="status success">Large document submitted. Job-ID: ${jobId}. Waiting for completion …</div>`;
+          paginationDiv.style.display = "none";
+
+          const jobResult = await pollJob(jobId);
+          const docEntry = jobResult?.results?.find(
+            (entry) => entry.doc_id === docId
+          );
+
+          if (docEntry && docEntry.status === "completed" && docEntry.result) {
+            const annotations = docEntry.result.annotations || [];
+            const resolvedText = docEntry.result.text || text;
+            applyAnnotationsToText(resolvedText, annotations, docId);
+            showStatus("Large document processed successfully!", "success");
+          } else if (docEntry && docEntry.error) {
+            throw new Error(docEntry.error);
+          } else if (jobResult.status === "failed" && jobResult.error) {
+            throw new Error(jobResult.error);
+          } else {
+            throw new Error(
+              "Job finished without usable results. Please retry."
+            );
+          }
+        } catch (error) {
+          console.error(error);
+          showStatus(`Error: ${error.message}`, "error");
+        }
+      }
+
+      async function pollJob(jobId, attempt = 0) {
+        if (attempt > 60) {
+          throw new Error("Timed out waiting for the background job to finish");
+        }
+
+        if (attempt > 0) {
+          await delay(2000);
+        }
+
+        const response = await fetch(
+          `${API_BASE}/api/v1/annotation/job?job_id=${encodeURIComponent(
+            jobId
+          )}`
+        );
+
+        if (!response.ok) {
+          throw await buildFetchError(response);
+        }
+
+        const data = await response.json();
+
+        if (data.status === "processing") {
+          return pollJob(jobId, attempt + 1);
+        }
+
+        return data;
+      }
+
+      function applyAnnotationsToText(text, annotations, docId) {
+        currentDocId = docId || null;
+        currentText = text;
+        currentAnnotations = annotations || [];
+        textToDisplay = text;
+        annotationsToDisplay = annotations || [];
+
+        generateLegend(annotationsToDisplay);
+        renderMarkerSummary(annotationsToDisplay);
+        currentPage = 0;
+        renderPage();
+      }
+
+      function renderPage() {
+        const totalPagesRaw = Math.ceil(
+          Math.max(textToDisplay.length, 1) / pageSize
+        );
+        const totalPages = Math.max(totalPagesRaw, 1);
+        const start = currentPage * pageSize;
+        const end = Math.min(start + pageSize, textToDisplay.length);
+        const pageText = textToDisplay.substring(start, end);
+
+        const pageAnnotations = annotationsToDisplay
+          .filter((ann) => ann.start < end && ann.end > start)
+          .map((ann) => ({
+            ...ann,
+            start: Math.max(0, ann.start - start),
+            end: Math.min(pageText.length, ann.end - start),
+          }));
+
+        const annotatedHtml = renderTextWithAnnotations(
+          pageText,
+          pageAnnotations
+        );
+        documentViewer.innerHTML =
+          annotatedHtml || "<em>No annotations detected.</em>";
+
+        pageInfo.textContent = `Page ${Math.min(
+          currentPage + 1,
+          totalPages
+        )} of ${totalPages}`;
+        paginationDiv.style.display = totalPages > 1 ? "block" : "none";
+
+        prevPageBtn.disabled = currentPage === 0;
+        nextPageBtn.disabled = currentPage >= totalPages - 1;
+      }
+
+      async function loadServerRenderedContent(docId) {
+        try {
+          showStatus("Loading server-rendered content...", "success");
+
+          const response = await fetch(
+            `${API_BASE}/api/v1/render/${docId}.html`
+          );
+
+          if (!response.ok) {
+            throw await buildFetchError(response);
+          }
+
+          const htmlContent = await response.text();
+          documentViewer.innerHTML = htmlContent;
+          paginationDiv.style.display = "none";
+          markerSummaryDiv.style.display = "none";
+
+          showStatus("Document loaded successfully", "success");
+        } catch (error) {
+          console.error(error);
+          showStatus(`Error loading document: ${error.message}`, "error");
+        }
+      }
+
+      function renderTextWithAnnotations(text, annotations) {
+        const input = typeof text === "string" ? text : "";
+        if (!annotations || annotations.length === 0) {
+          return escapeHtml(input);
+        }
+
+        const sanitized = annotations
+          .map((ann) => {
+            const rawStart = Number.isFinite(ann.start) ? ann.start : 0;
+            const rawEnd = Number.isFinite(ann.end) ? ann.end : rawStart;
+            const start = Math.max(0, Math.min(input.length, rawStart));
+            const end = Math.max(start, Math.min(input.length, rawEnd));
+            return {
+              ...ann,
+              start,
+              end,
+            };
+          })
+          .filter((ann) => ann.end > ann.start)
+          .sort((a, b) => {
+            if (a.start !== b.start) {
+              return a.start - b.start;
+            }
+            if (a.end !== b.end) {
+              return b.end - a.end;
+            }
+            return String(a.marker || "").localeCompare(String(b.marker || ""));
+          });
+
+        if (sanitized.length === 0) {
+          return escapeHtml(input);
+        }
+
+        const boundaries = new Set([0, input.length]);
+        const startMap = new Map();
+        const endMap = new Map();
+
+        for (const ann of sanitized) {
+          boundaries.add(ann.start);
+          boundaries.add(ann.end);
+          if (!startMap.has(ann.start)) {
+            startMap.set(ann.start, []);
+          }
+          startMap.get(ann.start).push(ann);
+          if (!endMap.has(ann.end)) {
+            endMap.set(ann.end, []);
+          }
+          endMap.get(ann.end).push(ann);
+        }
+
+        const sortedBoundaries = Array.from(boundaries).sort((a, b) => a - b);
+        const active = new Set();
+        let html = "";
+
+        for (let i = 0; i < sortedBoundaries.length - 1; i++) {
+          const boundary = sortedBoundaries[i];
+          const nextBoundary = sortedBoundaries[i + 1];
+          if (boundary >= nextBoundary) {
+            continue;
+          }
+
+          const ended = endMap.get(boundary);
+          if (ended) {
+            ended.forEach((ann) => active.delete(ann));
+          }
+
+          const started = startMap.get(boundary);
+          if (started) {
+            started.forEach((ann) => active.add(ann));
+          }
+
+          const segmentRaw = input.slice(boundary, nextBoundary);
+          if (!segmentRaw) {
+            continue;
+          }
+
+          const segmentText = escapeHtml(segmentRaw);
+          const activeList = Array.from(active);
+          if (activeList.length === 0) {
+            html += segmentText;
+            continue;
+          }
+
+          activeList.sort((a, b) => {
+            if (a.start !== b.start) {
+              return a.start - b.start;
+            }
+            if (a.end !== b.end) {
+              return b.end - a.end;
+            }
+            return String(a.marker || "").localeCompare(String(b.marker || ""));
+          });
+
+          const families = Array.from(
+            new Set(activeList.map((ann) => ann.family).filter(Boolean))
+          );
+          const markers = activeList.map((ann) => ann.marker).filter(Boolean);
+          const scores = activeList
+            .map((ann) =>
+              typeof ann.score === "number" ? ann.score.toFixed(2) : null
+            )
+            .filter(Boolean);
+          const titleParts = activeList
+            .map((ann) => {
+              if (typeof ann.score === "number") {
+                return `${ann.marker} (${ann.score.toFixed(2)})`;
+              }
+              return ann.marker || "";
+            })
+            .filter(Boolean);
+
+          const classNames = ["hl", ...families];
+          const attributes = [
+            `data-fam="${families.join("|")}"`,
+            `data-markers="${markers.join("|")}"`,
+          ];
+          if (scores.length > 0) {
+            attributes.push(`data-scores="${scores.join("|")}"`);
+          }
+          const titleAttr = titleParts.length
+            ? ` title="${escapeHtml(titleParts.join(" • "))}"`
+            : "";
+
+          html += `<span class="${classNames.join(" ")}" ${attributes.join(
+            " "
+          )}${titleAttr}>${segmentText}</span>`;
+        }
+
+        return html;
+      }
+
+      function generateLegend(annotations) {
+        if (!annotations || annotations.length === 0) {
+          legendContent.innerHTML = "<em>No annotations detected yet.</em>";
+          legendDiv.style.display = showLegendCheckbox.checked
+            ? "block"
+            : "none";
+          markerSummaryDiv.style.display = "none";
+          return;
+        }
+
+        const families = new Map();
+
+        for (const ann of annotations) {
+          if (!ann.family) {
+            continue;
+          }
+          if (!families.has(ann.family)) {
+            families.set(ann.family, new Set());
+          }
+          families.get(ann.family).add(ann.marker || "");
+        }
+
+        const sortedFamilies = Array.from(families.keys()).sort();
+        const rows = sortedFamilies.map((family) => {
+          const markers = Array.from(families.get(family) || [])
+            .filter(Boolean)
+            .sort();
+          const markersHtml = markers.length
+            ? markers.map(escapeHtml).join(", ")
+            : "—";
+          return `<div class="legend-item"><span class="legend-swatch ${family}"></span><span class="legend-label"><strong>${escapeHtml(
+            family
+          )}:</strong> ${markersHtml}</span></div>`;
         });
 
-        showLegendCheckbox.addEventListener('change', () => {
-            legendDiv.style.display = showLegendCheckbox.checked && annotationsToDisplay.length > 0 ? 'block' : 'none';
+        legendContent.innerHTML =
+          rows.join("") || "<em>No marker families detected.</em>";
+        legendDiv.style.display = showLegendCheckbox.checked ? "block" : "none";
+      }
+
+      function renderMarkerSummary(annotations) {
+        if (!annotations || annotations.length === 0) {
+          markerSummaryRows.innerHTML =
+            '<tr><td colspan="5"><em>No markers detected.</em></td></tr>';
+          markerSummaryDiv.style.display = "block";
+          return;
+        }
+
+        const sorted = [...annotations].sort((a, b) => {
+          if (a.start !== b.start) {
+            return a.start - b.start;
+          }
+          if (a.end !== b.end) {
+            return a.end - b.end;
+          }
+          return String(a.marker || "").localeCompare(String(b.marker || ""));
         });
 
-        exportJsonBtn.addEventListener('click', () => exportResult('json'));
-        exportHtmlBtn.addEventListener('click', () => exportResult('html'));
-        exportBioBtn.addEventListener('click', () => exportResult('bio'));
-        exportMdBtn.addEventListener('click', () => exportResult('md'));
-
-        prevPageBtn.addEventListener('click', () => {
-            if (currentPage > 0) {
-                currentPage--;
-                renderPage();
-            }
-        });
-
-        nextPageBtn.addEventListener('click', () => {
-            const totalPages = Math.max(1, Math.ceil(textToDisplay.length / pageSize));
-            if (currentPage < totalPages - 1) {
-                currentPage++;
-                renderPage();
-            }
-        });
-
-        async function handleSmallText(text) {
-            showStatus('Analyzing text with LD-3.5...', 'success');
-
-            try {
-                const response = await fetch(`${API_BASE}/api/v1/annotation/annotate`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ text })
-                });
-
-                if (!response.ok) {
-                    throw await buildFetchError(response);
-                }
-
-                const data = await response.json();
-                const docId = data.doc_id;
-                const annotations = data.annotations || [];
-                const resolvedText = data.text || text;
-
-                applyAnnotationsToText(resolvedText, annotations, docId);
-                showStatus('Analysis complete!', 'success');
-            } catch (error) {
-                console.error(error);
-                showStatus(`Error: ${error.message}`, 'error');
-            }
-        }
-
-        async function handleLargeText(text) {
-            showStatus('Submitting large text for server processing...', 'success');
-
-            const docId = `doc_${Date.now()}`;
-
-            try {
-                const response = await fetch(`${API_BASE}/api/v1/annotation/annotate-batch`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        documents: [
-                            {
-                                id: docId,
-                                text
-                            }
-                        ]
-                    })
-                });
-
-                if (!response.ok) {
-                    throw await buildFetchError(response);
-                }
-
-                const payload = await response.json();
-                const jobId = payload.job_id;
-
-                documentViewer.innerHTML = `<div class="status success">Large document submitted. Job-ID: ${jobId}. Waiting for completion …</div>`;
-                paginationDiv.style.display = 'none';
-
-                const jobResult = await pollJob(jobId);
-                const docEntry = jobResult?.results?.find(entry => entry.doc_id === docId);
-
-                if (docEntry && docEntry.status === 'completed' && docEntry.result) {
-                    const annotations = docEntry.result.annotations || [];
-                    const resolvedText = docEntry.result.text || text;
-                    applyAnnotationsToText(resolvedText, annotations, docId);
-                    showStatus('Large document processed successfully!', 'success');
-                } else if (docEntry && docEntry.error) {
-                    throw new Error(docEntry.error);
-                } else if (jobResult.status === 'failed' && jobResult.error) {
-                    throw new Error(jobResult.error);
-                } else {
-                    throw new Error('Job finished without usable results. Please retry.');
-                }
-            } catch (error) {
-                console.error(error);
-                showStatus(`Error: ${error.message}`, 'error');
-            }
-        }
-
-        async function pollJob(jobId, attempt = 0) {
-            if (attempt > 60) {
-                throw new Error('Timed out waiting for the background job to finish');
-            }
-
-            if (attempt > 0) {
-                await delay(2000);
-            }
-
-            const response = await fetch(`${API_BASE}/api/v1/annotation/job?job_id=${encodeURIComponent(jobId)}`);
-
-            if (!response.ok) {
-                throw await buildFetchError(response);
-            }
-
-            const data = await response.json();
-
-            if (data.status === 'processing') {
-                return pollJob(jobId, attempt + 1);
-            }
-
-            return data;
-        }
-
-        function applyAnnotationsToText(text, annotations, docId) {
-            currentDocId = docId || null;
-            currentText = text;
-            currentAnnotations = annotations || [];
-            textToDisplay = text;
-            annotationsToDisplay = annotations || [];
-
-            generateLegend(annotationsToDisplay);
-            renderMarkerSummary(annotationsToDisplay);
-            currentPage = 0;
-            renderPage();
-        }
-
-        function renderPage() {
-            const totalPagesRaw = Math.ceil(Math.max(textToDisplay.length, 1) / pageSize);
-            const totalPages = Math.max(totalPagesRaw, 1);
-            const start = currentPage * pageSize;
-            const end = Math.min(start + pageSize, textToDisplay.length);
-            const pageText = textToDisplay.substring(start, end);
-
-            const pageAnnotations = annotationsToDisplay
-                .filter(ann => ann.start < end && ann.end > start)
-                .map(ann => ({
-                    ...ann,
-                    start: Math.max(0, ann.start - start),
-                    end: Math.min(pageText.length, ann.end - start)
-                }));
-
-            const annotatedHtml = renderTextWithAnnotations(pageText, pageAnnotations);
-            documentViewer.innerHTML = annotatedHtml || '<em>No annotations detected.</em>';
-
-            pageInfo.textContent = `Page ${Math.min(currentPage + 1, totalPages)} of ${totalPages}`;
-            paginationDiv.style.display = totalPages > 1 ? 'block' : 'none';
-
-            prevPageBtn.disabled = currentPage === 0;
-            nextPageBtn.disabled = currentPage >= totalPages - 1;
-        }
-
-        async function loadServerRenderedContent(docId) {
-            try {
-                showStatus('Loading server-rendered content...', 'success');
-
-                const response = await fetch(`${API_BASE}/api/v1/render/${docId}.html`);
-
-                if (!response.ok) {
-                    throw await buildFetchError(response);
-                }
-
-                const htmlContent = await response.text();
-                documentViewer.innerHTML = htmlContent;
-                paginationDiv.style.display = 'none';
-                markerSummaryDiv.style.display = 'none';
-
-                showStatus('Document loaded successfully', 'success');
-            } catch (error) {
-                console.error(error);
-                showStatus(`Error loading document: ${error.message}`, 'error');
-            }
-        }
-
-        function renderTextWithAnnotations(text, annotations) {
-            const input = typeof text === 'string' ? text : '';
-            if (!annotations || annotations.length === 0) {
-                return escapeHtml(input);
-            }
-
-            const sanitized = annotations
-                .map(ann => {
-                    const rawStart = Number.isFinite(ann.start) ? ann.start : 0;
-                    const rawEnd = Number.isFinite(ann.end) ? ann.end : rawStart;
-                    const start = Math.max(0, Math.min(input.length, rawStart));
-                    const end = Math.max(start, Math.min(input.length, rawEnd));
-                    return {
-                        ...ann,
-                        start,
-                        end
-                    };
-                })
-                .filter(ann => ann.end > ann.start)
-                .sort((a, b) => {
-                    if (a.start !== b.start) {
-                        return a.start - b.start;
-                    }
-                    if (a.end !== b.end) {
-                        return b.end - a.end;
-                    }
-                    return String(a.marker || '').localeCompare(String(b.marker || ''));
-                });
-
-            if (sanitized.length === 0) {
-                return escapeHtml(input);
-            }
-
-            const boundaries = new Set([0, input.length]);
-            const startMap = new Map();
-            const endMap = new Map();
-
-            for (const ann of sanitized) {
-                boundaries.add(ann.start);
-                boundaries.add(ann.end);
-                if (!startMap.has(ann.start)) {
-                    startMap.set(ann.start, []);
-                }
-                startMap.get(ann.start).push(ann);
-                if (!endMap.has(ann.end)) {
-                    endMap.set(ann.end, []);
-                }
-                endMap.get(ann.end).push(ann);
-            }
-
-            const sortedBoundaries = Array.from(boundaries).sort((a, b) => a - b);
-            const active = new Set();
-            let html = '';
-
-            for (let i = 0; i < sortedBoundaries.length - 1; i++) {
-                const boundary = sortedBoundaries[i];
-                const nextBoundary = sortedBoundaries[i + 1];
-                if (boundary >= nextBoundary) {
-                    continue;
-                }
-
-                const ended = endMap.get(boundary);
-                if (ended) {
-                    ended.forEach(ann => active.delete(ann));
-                }
-
-                const started = startMap.get(boundary);
-                if (started) {
-                    started.forEach(ann => active.add(ann));
-                }
-
-                const segmentRaw = input.slice(boundary, nextBoundary);
-                if (!segmentRaw) {
-                    continue;
-                }
-
-                const segmentText = escapeHtml(segmentRaw);
-                const activeList = Array.from(active);
-                if (activeList.length === 0) {
-                    html += segmentText;
-                    continue;
-                }
-
-                activeList.sort((a, b) => {
-                    if (a.start !== b.start) {
-                        return a.start - b.start;
-                    }
-                    if (a.end !== b.end) {
-                        return b.end - a.end;
-                    }
-                    return String(a.marker || '').localeCompare(String(b.marker || ''));
-                });
-
-                const families = Array.from(new Set(activeList.map(ann => ann.family).filter(Boolean)));
-                const markers = activeList.map(ann => ann.marker).filter(Boolean);
-                const scores = activeList
-                    .map(ann => (typeof ann.score === 'number' ? ann.score.toFixed(2) : null))
-                    .filter(Boolean);
-                const titleParts = activeList.map(ann => {
-                    if (typeof ann.score === 'number') {
-                        return `${ann.marker} (${ann.score.toFixed(2)})`;
-                    }
-                    return ann.marker || '';
-                }).filter(Boolean);
-
-                const classNames = ['hl', ...families];
-                const attributes = [`data-fam="${families.join('|')}"`, `data-markers="${markers.join('|')}"`];
-                if (scores.length > 0) {
-                    attributes.push(`data-scores="${scores.join('|')}"`);
-                }
-                const titleAttr = titleParts.length ? ` title="${escapeHtml(titleParts.join(' • '))}"` : '';
-
-                html += `<span class="${classNames.join(' ')}" ${attributes.join(' ')}${titleAttr}>${segmentText}</span>`;
-            }
-
-            return html;
-        }
-
-        function generateLegend(annotations) {
-            if (!annotations || annotations.length === 0) {
-                legendContent.innerHTML = '<em>No annotations detected yet.</em>';
-                legendDiv.style.display = showLegendCheckbox.checked ? 'block' : 'none';
-                markerSummaryDiv.style.display = 'none';
-                return;
-            }
-
-            const families = new Map();
-
-            for (const ann of annotations) {
-                if (!ann.family) {
-                    continue;
-                }
-                if (!families.has(ann.family)) {
-                    families.set(ann.family, new Set());
-                }
-                families.get(ann.family).add(ann.marker || '');
-            }
-
-            const sortedFamilies = Array.from(families.keys()).sort();
-            const rows = sortedFamilies.map(family => {
-                const markers = Array.from(families.get(family) || []).filter(Boolean).sort();
-                const markersHtml = markers.length ? markers.map(escapeHtml).join(', ') : '—';
-                return `<div class="legend-item"><span class="legend-swatch ${family}"></span><span class="legend-label"><strong>${escapeHtml(family)}:</strong> ${markersHtml}</span></div>`;
-            });
-
-            legendContent.innerHTML = rows.join('') || '<em>No marker families detected.</em>';
-            legendDiv.style.display = showLegendCheckbox.checked ? 'block' : 'none';
-        }
-
-        function renderMarkerSummary(annotations) {
-            if (!annotations || annotations.length === 0) {
-                markerSummaryRows.innerHTML = '<tr><td colspan="5"><em>No markers detected.</em></td></tr>';
-                markerSummaryDiv.style.display = 'block';
-                return;
-            }
-
-            const sorted = [...annotations].sort((a, b) => {
-                if (a.start !== b.start) {
-                    return a.start - b.start;
-                }
-                if (a.end !== b.end) {
-                    return a.end - b.end;
-                }
-                return String(a.marker || '').localeCompare(String(b.marker || ''));
-            });
-
-            const rows = sorted.map((ann, index) => {
-                const span = `${ann.start}–${ann.end}`;
-                const score = typeof ann.score === 'number' ? ann.score.toFixed(2) : '—';
-                return `<tr>
+        const rows = sorted.map((ann, index) => {
+          const span = `${ann.start}–${ann.end}`;
+          const score =
+            typeof ann.score === "number" ? ann.score.toFixed(2) : "—";
+          return `<tr>
                     <td>${index + 1}</td>
-                    <td>${escapeHtml(ann.marker || '')}</td>
-                    <td>${escapeHtml(ann.family || '')}</td>
+                    <td>${escapeHtml(ann.marker || "")}</td>
+                    <td>${escapeHtml(ann.family || "")}</td>
                     <td>${escapeHtml(span)}</td>
                     <td>${score}</td>
                 </tr>`;
-            });
+        });
 
-            markerSummaryRows.innerHTML = rows.join('');
-            markerSummaryDiv.style.display = 'block';
+        markerSummaryRows.innerHTML = rows.join("");
+        markerSummaryDiv.style.display = "block";
+      }
+
+      function exportResult(format) {
+        if (!currentText) {
+          alert(
+            "No analysis results to export yet. Please run an analysis first."
+          );
+          return;
         }
 
-        function exportResult(format) {
-            if (!currentText) {
-                alert('No analysis results to export yet. Please run an analysis first.');
-                return;
-            }
+        let content = "";
+        let filenameBase = currentDocId || "annotations";
+        let contentType = "";
 
-            let content = '';
-            let filenameBase = currentDocId || 'annotations';
-            let contentType = '';
-
-            switch (format) {
-                case 'json':
-                    content = JSON.stringify({
-                        text: currentText,
-                        annotations: currentAnnotations
-                    }, null, 2);
-                    contentType = 'application/json';
-                    filenameBase += '.ann.json';
-                    break;
-                case 'html':
-                    const htmlPayload = renderTextWithAnnotations(currentText, currentAnnotations);
-                    content = `<!DOCTYPE html>
+        switch (format) {
+          case "json":
+            content = JSON.stringify(
+              {
+                text: currentText,
+                annotations: currentAnnotations,
+              },
+              null,
+              2
+            );
+            contentType = "application/json";
+            filenameBase += ".ann.json";
+            break;
+          case "html":
+            const htmlPayload = renderTextWithAnnotations(
+              currentText,
+              currentAnnotations
+            );
+            content = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -736,102 +1004,106 @@
 </head>
 <body>${htmlPayload}</body>
 </html>`;
-                    contentType = 'text/html';
-                    filenameBase += '.html';
-                    break;
-                case 'bio':
-                    content = generateBioTsv(currentText, currentAnnotations);
-                    contentType = 'text/tab-separated-values';
-                    filenameBase += '.bio.tsv';
-                    break;
-                case 'md':
-                    content = generateMarkdown(currentText, currentAnnotations);
-                    contentType = 'text/markdown';
-                    filenameBase += '.md';
-                    break;
-                default:
-                    alert('Unknown export format');
-                    return;
-            }
-
-            const blob = new Blob([content], { type: contentType });
-            const url = URL.createObjectURL(blob);
-            const anchor = document.createElement('a');
-            anchor.href = url;
-            anchor.download = filenameBase;
-            document.body.appendChild(anchor);
-            anchor.click();
-            document.body.removeChild(anchor);
-            URL.revokeObjectURL(url);
+            contentType = "text/html";
+            filenameBase += ".html";
+            break;
+          case "bio":
+            content = generateBioTsv(currentText, currentAnnotations);
+            contentType = "text/tab-separated-values";
+            filenameBase += ".bio.tsv";
+            break;
+          case "md":
+            content = generateMarkdown(currentText, currentAnnotations);
+            contentType = "text/markdown";
+            filenameBase += ".md";
+            break;
+          default:
+            alert("Unknown export format");
+            return;
         }
 
-        function generateBioTsv(text, annotations) {
-            const tokens = text.split(/\s+/);
-            const bioLabels = new Array(tokens.length).fill('O');
-            const charToToken = {};
-            let tokenStart = 0;
+        const blob = new Blob([content], { type: contentType });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = filenameBase;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+      }
 
-            tokens.forEach((token, index) => {
-                for (let j = 0; j < token.length; j++) {
-                    charToToken[tokenStart + j] = index;
-                }
-                tokenStart += token.length + 1;
-            });
+      function generateBioTsv(text, annotations) {
+        const tokens = text.split(/\s+/);
+        const bioLabels = new Array(tokens.length).fill("O");
+        const charToToken = {};
+        let tokenStart = 0;
 
-            annotations.forEach(ann => {
-                const startIdx = charToToken[ann.start];
-                const endIdx = charToToken[ann.end - 1];
-                if (startIdx === undefined || endIdx === undefined) {
-                    return;
-                }
-                bioLabels[startIdx] = `B-${ann.marker}`;
-                for (let idx = startIdx + 1; idx <= endIdx; idx++) {
-                    bioLabels[idx] = `I-${ann.marker}`;
-                }
-            });
+        tokens.forEach((token, index) => {
+          for (let j = 0; j < token.length; j++) {
+            charToToken[tokenStart + j] = index;
+          }
+          tokenStart += token.length + 1;
+        });
 
-            return tokens.map((token, idx) => `${token}\t${bioLabels[idx] || 'O'}`).join('\n');
+        annotations.forEach((ann) => {
+          const startIdx = charToToken[ann.start];
+          const endIdx = charToToken[ann.end - 1];
+          if (startIdx === undefined || endIdx === undefined) {
+            return;
+          }
+          bioLabels[startIdx] = `B-${ann.marker}`;
+          for (let idx = startIdx + 1; idx <= endIdx; idx++) {
+            bioLabels[idx] = `I-${ann.marker}`;
+          }
+        });
+
+        return tokens
+          .map((token, idx) => `${token}\t${bioLabels[idx] || "O"}`)
+          .join("\n");
+      }
+
+      function generateMarkdown(text, annotations) {
+        return renderTextWithAnnotations(text, annotations);
+      }
+
+      function showStatus(message, type) {
+        if (!message) {
+          statusDiv.style.display = "none";
+          return;
         }
+        statusDiv.textContent = message;
+        statusDiv.className = `status ${type}`;
+        statusDiv.style.display = "block";
+      }
 
-        function generateMarkdown(text, annotations) {
-            return renderTextWithAnnotations(text, annotations);
-        }
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
 
-        function showStatus(message, type) {
-            if (!message) {
-                statusDiv.style.display = 'none';
-                return;
-            }
-            statusDiv.textContent = message;
-            statusDiv.className = `status ${type}`;
-            statusDiv.style.display = 'block';
+      async function buildFetchError(response) {
+        try {
+          const payload = await response.json();
+          if (payload?.detail) {
+            return new Error(payload.detail);
+          }
+          return new Error(
+            typeof payload === "string" ? payload : JSON.stringify(payload)
+          );
+        } catch (jsonError) {
+          const text = await response.text();
+          return new Error(text || response.statusText || "Request failed");
         }
+      }
 
-        function escapeHtml(value) {
-            return String(value ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
-
-        async function buildFetchError(response) {
-            try {
-                const payload = await response.json();
-                if (payload?.detail) {
-                    return new Error(payload.detail);
-                }
-                return new Error(typeof payload === 'string' ? payload : JSON.stringify(payload));
-            } catch (jsonError) {
-                const text = await response.text();
-                return new Error(text || response.statusText || 'Request failed');
-            }
-        }
-
-        function delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
+      function delay(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
     </script>
-</body>
+  </body>
 </html>

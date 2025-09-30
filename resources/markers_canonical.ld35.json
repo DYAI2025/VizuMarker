@@ -2,13 +2,43 @@
   "version": "ld35",
   "markers": [
     {
+      "id": "ATO_GASLIGHTING_TERM",
+      "family": "ATO",
+      "kind": "atomic",
+      "detects": [
+        {
+          "regex": "einbilden|phantasie|phantasieren|überreaktion",
+          "flags": "i"
+        },
+        { "regex": "zu\\s+sensibel|überempfindlich|hysterisch", "flags": "i" },
+        { "regex": "das\\s+hast\\s+du\\s+dir\\s+eingebildet", "flags": "i" },
+        { "regex": "so\\s+war\\s+das\\s+nicht\\s+gemeint", "flags": "i" }
+      ],
+      "severity": 0.7
+    },
+    {
+      "id": "ATO_ACCUSATION_OF_CONTROL",
+      "family": "ATO",
+      "kind": "atomic",
+      "detects": [
+        { "regex": "kontrollieren|kontrollsüchtig|manipulativ", "flags": "i" },
+        { "regex": "du\\s+willst\\s+mich\\s+kontrollieren", "flags": "i" },
+        { "regex": "klammern|besitzergreifend", "flags": "i" }
+      ],
+      "severity": 0.6
+    },
+    {
       "id": "SEM_EVIDENCE_PHRASE",
       "family": "SEM",
       "kind": "atomic",
       "detects": [
-        {"regex": "(mit|ohne)\\s+Beweis(e|en)", "flags": "i", "anchor_group": 0},
-        {"regex": "beweisen|beleg(en|t)|nachweis(en|e)|Beweislast", "flags": "i", "anchor_group": 0},
-        {"regex": "du\\s+willst\\s+ja\\s+finden", "flags": "i", "anchor_group": 0}
+        { "regex": "(mit|ohne)\\s+Beweis(e|en)", "flags": "i" },
+        {
+          "regex": "beweisen|beleg(en|t)|nachweis(en|e)|Beweislast",
+          "flags": "i"
+        },
+        { "regex": "du\\s+willst\\s+ja\\s+finden", "flags": "i" },
+        { "regex": "kannst\\s+du\\s+(das\\s+)?beweisen", "flags": "i" }
       ],
       "severity": 0.6
     },
@@ -17,8 +47,9 @@
       "family": "SEM",
       "kind": "atomic",
       "detects": [
-        {"regex": "catch\\s*-?\\s*22", "flags": "i", "anchor_group": 0},
-        {"regex": "Doppel(\\s|-)?bindung", "flags": "i", "anchor_group": 0}
+        { "regex": "catch\\s*-?\\s*22", "flags": "i" },
+        { "regex": "Doppel(\\s|-)?bindung", "flags": "i" },
+        { "regex": "damned\\s+if\\s+you\\s+do", "flags": "i" }
       ],
       "severity": 0.55
     },
@@ -27,20 +58,120 @@
       "family": "CLU",
       "kind": "atomic",
       "detects": [
-        {"regex": "wenn\\s+wir\\s+uns\\s+trennen\\s+und\\s+wieder\\s+dat(en|en),\\s*sagen\\s+wir\\s+es\\s+einander", "flags": "i", "anchor_group": 0},
-        {"regex": "Absprache|Regel|Verbindlichkeit", "flags": "i", "anchor_group": 0}
+        {
+          "regex": "wenn\\s+wir\\s+uns\\s+trennen\\s+und\\s+wieder\\s+dat(en|en),\\s*sagen\\s+wir\\s+es\\s+einander",
+          "flags": "i"
+        },
+        {
+          "regex": "Absprache|Regel|Verbindlichkeit|transparent",
+          "flags": "i"
+        },
+        { "regex": "ehrlich\\s+sein|offen\\s+kommunizieren", "flags": "i" }
       ],
       "severity": 0.55
+    },
+    {
+      "id": "MEMA_EMOTIONAL_BLACKMAIL",
+      "family": "MEMA",
+      "kind": "atomic",
+      "detects": [
+        { "regex": "wenn\\s+du\\s+mich\\s+liebst", "flags": "i" },
+        {
+          "regex": "nach\\s+allem\\s+was\\s+ich\\s+für\\s+dich\\s+getan\\s+habe",
+          "flags": "i"
+        },
+        { "regex": "du\\s+schuldest\\s+mir", "flags": "i" }
+      ],
+      "severity": 0.75
+    },
+    {
+      "id": "ATO_NUMERIC_ESTIMATE",
+      "family": "ATO",
+      "kind": "atomic",
+      "detects": [
+        {
+          "regex": "(etwa|circa|ca\\.|ungefähr|schätzungsweise|mindestens|höchstens|um\\s+die)\\s+\\d+",
+          "flags": "i"
+        },
+        {
+          "regex": "\\b\\d+\\s*(prozent|%|grad|meter|kilometer|kilogramm|kg|euro|dollar|jahre?|monate?|wochen?|tage?)\\b",
+          "flags": "i"
+        },
+        {
+          "regex": "(zwischen|von)\\s+\\d+\\s+(und|bis)\\s+\\d+",
+          "flags": "i"
+        }
+      ],
+      "demote_if": [
+        {
+          "regex": "\\b\\d{1,2}[:.]\\d{1,2}([:.]\\d{1,2})?\\b",
+          "flags": "i",
+          "description": "timestamp_pattern"
+        },
+        {
+          "regex": "\\b\\d{1,2}\\.\\d{1,2}\\.\\d{2,4}\\b",
+          "description": "date_pattern"
+        },
+        {
+          "regex": "\\b\\d{4}-\\d{1,2}-\\d{1,2}\\b",
+          "description": "iso_date_pattern"
+        },
+        {
+          "regex": "\\b\\d{4}-\\d{1,2}-\\d{1,2}T\\d{1,2}:\\d{1,2}:\\d{1,2}",
+          "description": "iso_datetime_pattern"
+        },
+        {
+          "regex": "\\b\\d+\\s*uhr\\b",
+          "flags": "i",
+          "description": "time_expression"
+        },
+        {
+          "regex": "um\\s+\\d{1,2}[:.]\\d{1,2}",
+          "flags": "i",
+          "description": "time_with_um"
+        },
+        {
+          "regex": "\\[\\d{4}-\\d{1,2}-\\d{1,2}\\s+\\d{1,2}:\\d{1,2}:\\d{1,2}\\]",
+          "description": "bracketed_datetime"
+        },
+        {
+          "regex": "\\(\\d{1,2}:\\d{1,2}\\)",
+          "description": "parenthesized_time"
+        }
+      ],
+      "negative_examples": [
+        "14:30",
+        "09:15:23",
+        "12.12.2023",
+        "2023-12-25",
+        "um 15 uhr",
+        "15:30 Uhr",
+        "um 14:30"
+      ],
+      "positive_examples": [
+        "etwa 50 prozent",
+        "ca. 30 euro",
+        "ungefähr 15 kilometer",
+        "zwischen 10 und 20 jahren",
+        "mindestens 100 meter"
+      ],
+      "severity": 0.4
     },
     {
       "id": "SEM_BEWEISLAST_VERSCHIEBUNG",
       "family": "SEM",
       "kind": "composed",
       "composed_of": [
-        {"marker_id": "SEM_EVIDENCE_PHRASE", "weight": 1.0}
+        { "marker_id": "SEM_EVIDENCE_PHRASE", "weight": 1.0 },
+        { "marker_id": "ATO_ACCUSATION_OF_CONTROL", "weight": 0.8 }
       ],
-      "activation": "SEM_EVIDENCE_PHRASE >= 1",
-      "span_policy": {"mode": "sentence_union", "max_sentence_span": 1, "fallback": "anchor_window", "window_tokens": [-8, 8]},
+      "activation": "SEM_EVIDENCE_PHRASE >= 1 && (ATO_ACCUSATION_OF_CONTROL >= 1 || total_children >= 2)",
+      "span_policy": {
+        "mode": "sentence_union",
+        "max_sentence_span": 2,
+        "fallback": "anchor_window",
+        "window_tokens": [-8, 8]
+      },
       "evidence_policy": "union",
       "severity": 0.7
     },
@@ -49,10 +180,16 @@
       "family": "SEM",
       "kind": "composed",
       "composed_of": [
-        {"marker_id": "SEM_CATCH22", "weight": 1.0}
+        { "marker_id": "SEM_CATCH22", "weight": 1.0 },
+        { "marker_id": "MEMA_EMOTIONAL_BLACKMAIL", "weight": 0.6 }
       ],
-      "activation": "SEM_CATCH22 >= 1",
-      "span_policy": {"mode": "sentence_union", "max_sentence_span": 1, "fallback": "anchor_window", "window_tokens": [-6, 6]},
+      "activation": "SEM_CATCH22 >= 1 || (MEMA_EMOTIONAL_BLACKMAIL >= 1 && total_children >= 2)",
+      "span_policy": {
+        "mode": "sentence_union",
+        "max_sentence_span": 1,
+        "fallback": "anchor_window",
+        "window_tokens": [-6, 6]
+      },
       "evidence_policy": "union",
       "severity": 0.65
     },
@@ -60,13 +197,34 @@
       "id": "CLU_TRANSPARENZREGEL",
       "family": "CLU",
       "kind": "composed",
-      "composed_of": [
-        {"marker_id": "CLU_RULE_PHRASE", "weight": 1.0}
-      ],
+      "composed_of": [{ "marker_id": "CLU_RULE_PHRASE", "weight": 1.0 }],
       "activation": "CLU_RULE_PHRASE >= 1",
-      "span_policy": {"mode": "sentence_union", "max_sentence_span": 1, "fallback": "anchor_window", "window_tokens": [-6, 6]},
+      "span_policy": {
+        "mode": "sentence_union",
+        "max_sentence_span": 1,
+        "fallback": "anchor_window",
+        "window_tokens": [-6, 6]
+      },
       "evidence_policy": "union",
       "severity": 0.6
+    },
+    {
+      "id": "SEM_GASLIGHTING_PATTERN",
+      "family": "SEM",
+      "kind": "composed",
+      "composed_of": [
+        { "marker_id": "ATO_GASLIGHTING_TERM", "weight": 1.0 },
+        { "marker_id": "SEM_EVIDENCE_PHRASE", "weight": 0.7 }
+      ],
+      "activation": "ATO_GASLIGHTING_TERM >= 1 && total_children >= 1",
+      "span_policy": {
+        "mode": "sentence_union",
+        "max_sentence_span": 2,
+        "fallback": "anchor_window",
+        "window_tokens": [-10, 10]
+      },
+      "evidence_policy": "union",
+      "severity": 0.8
     }
   ]
 }

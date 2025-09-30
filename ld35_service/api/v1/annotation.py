@@ -1,7 +1,10 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, Query
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, Query, UploadFile, File, Body
 from fastapi.security import HTTPAuthorizationCredentials
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import uuid
+import json
+import hashlib
+from pathlib import Path
 from ...schemas.annotation import (
     AnnotationRequest,
     AnnotationResponse,
@@ -12,6 +15,7 @@ from ...workers.annotation_tasks import process_annotation_task as celery_annota
 from ...core.ld35_engine import process_ld35_annotations, process_with_llm_fallback
 from ...core.storage import document_storage
 from ...core.security import verify_token, security
+from ...engine.sem_core import analyze_text
 
 router = APIRouter()
 
@@ -24,7 +28,7 @@ def annotate_text(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> AnnotationResponse:
     """
-    Annotate a single document with LD-3.5 markers
+    Annotate a single document with LD-3.5 markers using enhanced semantic engine
     For large documents, consider using the batch endpoint instead
     """
     # Verify the token
@@ -36,20 +40,41 @@ def annotate_text(
         # Generate a document ID if not provided
         doc_id = request.doc_id or str(uuid.uuid4())
         
-        # Determine which processing method to use
+        # Get options
         options = request.options.dict() if request.options else {}
-        use_ld35 = options.get('use_ld35', True)
-        use_llm_fallback = options.get('use_llm_fallback', False)
+        use_semantic_engine = options.get('use_semantic_engine', True)
+        use_ld35_fallback = options.get('use_ld35_fallback', True)
         
         annotations = []
         
-        if use_ld35:
+        if use_semantic_engine:
             try:
-                annotations = process_ld35_annotations(request.text, options)
+                # Use new semantic engine for better heuristic understanding
+                resources_dir = Path(__file__).resolve().parents[3] / "resources"
+                result = analyze_text(request.text, resources_dir)
+                
+                # Convert to Annotation objects
+                from ...schemas.annotation import Annotation
+                annotations = []
+                for ann_data in result.get("annotations", []):
+                    annotation = Annotation(
+                        start=ann_data["start"],
+                        end=ann_data["end"],
+                        marker=ann_data["marker_id"],
+                        family=ann_data["family"],
+                        label=ann_data.get("label", ann_data["marker_id"]),
+                        score=ann_data.get("score", 0.7)
+                    )
+                    annotations.append(annotation)
+                    
             except Exception as e:
-                raise HTTPException(status_code=500, detail=f"LD-3.5 processing failed: {str(e)}")
-        elif use_llm_fallback:
-            annotations = process_with_llm_fallback(request.text, options)
+                if use_ld35_fallback:
+                    # Fall back to original LD35 engine
+                    annotations = process_ld35_annotations(request.text, options)
+                else:
+                    raise HTTPException(status_code=500, detail=f"Semantic engine failed: {str(e)}")
+        elif use_ld35_fallback:
+            annotations = process_ld35_annotations(request.text, options)
         
         # Save document and annotations
         if not document_storage.save_original_text(doc_id, request.text):
@@ -60,6 +85,74 @@ def annotate_text(
         return AnnotationResponse(doc_id=doc_id, annotations=annotations, text=request.text)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Annotation failed: {str(e)}")
+
+
+@router.post("/annotate-semantic")
+def annotate_semantic(text: str = Body(..., embed=True)):
+    """
+    Direct semantic annotation endpoint (no authentication required for testing)
+    Returns enhanced semantic analysis with sentence-level spans
+    """
+    try:
+        resources_dir = Path(__file__).resolve().parents[3] / "resources"
+        result = analyze_text(text, resources_dir)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Semantic analysis failed: {str(e)}")
+
+
+@router.post("/annotate-batch-files")
+async def annotate_batch_files(
+    files: List[UploadFile] = File(...),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+):
+    """
+    Batch annotate multiple uploaded files using semantic engine
+    """
+    token_payload = verify_token(credentials)
+    if not token_payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    try:
+        resources_dir = Path(__file__).resolve().parents[3] / "resources"
+        results = []
+        
+        for file in files:
+            # Read file content
+            content = await file.read()
+            text = content.decode("utf-8", errors="ignore")
+            
+            # Analyze with semantic engine
+            result = analyze_text(text, resources_dir)
+            
+            # Add file metadata
+            result["source"] = file.filename
+            result["text_sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+            
+            results.append(result)
+        
+        return {"items": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Batch processing failed: {str(e)}")
+
+
+def _convert_to_ann_format(analysis_result: dict) -> dict:
+    """Convert semantic analysis result to .ann.json format"""
+    return {
+        "source": analysis_result.get("source", "unknown"),
+        "text_sha256": analysis_result.get("text_sha256", ""),
+        "annotations": [
+            {
+                "marker_id": ann["marker_id"],
+                "family": ann["family"], 
+                "start": ann["start"],
+                "end": ann["end"],
+                "score": ann.get("score", 0.7)
+            }
+            for ann in analysis_result.get("annotations", [])
+        ],
+        "metadata": analysis_result.get("metadata", {})
+    }
 
 
 @router.post("/annotate-batch")

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VizuMarker LD3.5 Semantic Viewer Demo</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f7fa;
+      }
+
+      .demo-container {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        margin: 20px 0;
+      }
+
+      .demo-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e9ecef;
+      }
+
+      .demo-title {
+        color: #2c3e50;
+        font-size: 2.2em;
+        margin-bottom: 10px;
+        font-weight: 300;
+      }
+
+      .demo-subtitle {
+        color: #7f8c8d;
+        font-size: 1.1em;
+      }
+
+      .input-section {
+        margin-bottom: 30px;
+      }
+
+      .input-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #34495e;
+      }
+
+      .text-input {
+        width: 100%;
+        min-height: 120px;
+        padding: 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.5;
+        resize: vertical;
+        font-family: inherit;
+      }
+
+      .text-input:focus {
+        outline: none;
+        border-color: #4ecdc4;
+        box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+      }
+
+      .demo-buttons {
+        display: flex;
+        gap: 10px;
+        margin: 20px 0;
+      }
+
+      .demo-button {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+      }
+
+      .demo-button.primary {
+        background: #4ecdc4;
+        color: white;
+      }
+
+      .demo-button.primary:hover {
+        background: #45b7aa;
+        transform: translateY(-1px);
+      }
+
+      .demo-button.secondary {
+        background: #ecf0f1;
+        color: #2c3e50;
+      }
+
+      .demo-button.secondary:hover {
+        background: #d5dbdb;
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 20px;
+        color: #7f8c8d;
+      }
+
+      .loading.show {
+        display: block;
+      }
+
+      .examples {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e9ecef;
+      }
+
+      .examples h3 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+      }
+
+      .example-item {
+        background: #f8f9fa;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: background 0.2s ease;
+      }
+
+      .example-item:hover {
+        background: #e9ecef;
+      }
+
+      .api-info {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 6px;
+        margin: 20px 0;
+        font-size: 0.9em;
+        color: #6c757d;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-container">
+      <div class="demo-header">
+        <h1 class="demo-title">VizuMarker LD3.5</h1>
+        <p class="demo-subtitle">
+          Enhanced Semantic Pattern Analysis with Sentence-Level Spans
+        </p>
+      </div>
+
+      <div class="input-section">
+        <label class="input-label" for="textInput">Text zum Analysieren:</label>
+        <textarea
+          id="textInput"
+          class="text-input"
+          placeholder="Geben Sie hier Ihren Text ein, um semantische Muster zu analysieren..."
+        ></textarea>
+      </div>
+
+      <div class="demo-buttons">
+        <button id="analyzeBtn" class="demo-button primary">Analysieren</button>
+        <button id="clearBtn" class="demo-button secondary">Löschen</button>
+      </div>
+
+      <div class="api-info">
+        <strong>Enhanced Features:</strong>
+        Composed markers with activation formulas • Sentence-level spans •
+        Overlap resolution • Family-based prioritization • Real-time semantic
+        analysis
+      </div>
+
+      <div id="loading" class="loading">
+        Analysiere Text mit LD3.5 Semantic Engine...
+      </div>
+
+      <div id="viewer"></div>
+
+      <div class="examples">
+        <h3>Beispieltexte:</h3>
+        <div
+          class="example-item"
+          data-text="Du bildest dir das nur ein. Das habe ich nie gesagt. Du bist viel zu sensibel und machst aus allem ein Drama."
+        >
+          Gaslighting-Muster
+        </div>
+        <div
+          class="example-item"
+          data-text="Wenn du mich liebst, dann würdest du das für mich tun. Nach allem was ich für dich getan habe, schuldest du mir das."
+        >
+          Emotionale Erpressung
+        </div>
+        <div
+          class="example-item"
+          data-text="Du musst das beweisen können. Wo sind deine Belege? Du willst ja nur Probleme finden wo keine sind."
+        >
+          Beweislastverschiebung
+        </div>
+        <div
+          class="example-item"
+          data-text="Wir haben abgesprochen dass wir transparent sind. Das ist unsere Regel und daran müssen wir uns halten."
+        >
+          Transparenzregel
+        </div>
+      </div>
+    </div>
+
+    <script src="ld35-semantic-viewer.js"></script>
+    <script>
+      // Initialize the semantic viewer
+      const viewer = new LD35SemanticViewer("viewer", {
+        showMetadata: true,
+        highlightSentences: true,
+        showFamilyColors: true,
+        showScores: true,
+      });
+
+      // DOM elements
+      const textInput = document.getElementById("textInput");
+      const analyzeBtn = document.getElementById("analyzeBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const loading = document.getElementById("loading");
+
+      // Event handlers
+      analyzeBtn.addEventListener("click", async () => {
+        const text = textInput.value.trim();
+        if (!text) {
+          alert("Bitte geben Sie einen Text ein.");
+          return;
+        }
+
+        loading.classList.add("show");
+        analyzeBtn.disabled = true;
+
+        try {
+          // Try to use the API endpoint first
+          await viewer.renderFromApi(text);
+        } catch (error) {
+          // Fallback to mock data for demo purposes
+          console.log("API not available, using demo mode");
+
+          // Simulate API delay
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          // Generate mock analysis result
+          const mockResult = generateMockAnalysis(text);
+          viewer.render(mockResult);
+        } finally {
+          loading.classList.remove("show");
+          analyzeBtn.disabled = false;
+        }
+      });
+
+      clearBtn.addEventListener("click", () => {
+        textInput.value = "";
+        viewer.clear();
+      });
+
+      // Example text handlers
+      document.querySelectorAll(".example-item").forEach((item) => {
+        item.addEventListener("click", () => {
+          textInput.value = item.dataset.text;
+          analyzeBtn.click();
+        });
+      });
+
+      // Listen for annotation clicks
+      document
+        .getElementById("viewer")
+        .addEventListener("annotationClick", (e) => {
+          console.log("Annotation clicked:", e.detail);
+          // You can add custom behavior here
+        });
+
+      // Mock analysis generator for demo when API is not available
+      function generateMockAnalysis(text) {
+        const annotations = [];
+        let id = 0;
+
+        // Simple pattern matching for demo
+        const patterns = [
+          {
+            regex: /einbild(en|est|et)|phantasie|sensibel|drama/gi,
+            family: "ATO",
+            marker: "ATO_GASLIGHTING_TERM",
+          },
+          {
+            regex: /beweise(n|st)?|belege?|nachweis/gi,
+            family: "SEM",
+            marker: "SEM_EVIDENCE_PHRASE",
+          },
+          {
+            regex: /wenn.*liebst|schuldest/gi,
+            family: "MEMA",
+            marker: "MEMA_EMOTIONAL_BLACKMAIL",
+          },
+          {
+            regex: /transparent|regel|absprache/gi,
+            family: "CLU",
+            marker: "CLU_RULE_PHRASE",
+          },
+        ];
+
+        patterns.forEach((pattern) => {
+          let match;
+          while ((match = pattern.regex.exec(text)) !== null) {
+            annotations.push({
+              marker_id: pattern.marker,
+              family: pattern.family,
+              start: match.index,
+              end: match.index + match[0].length,
+              score: 0.5 + Math.random() * 0.4,
+            });
+          }
+        });
+
+        // Add some composed markers
+        if (
+          annotations.some(
+            (a) => a.family === "ATO" && a.marker === "ATO_GASLIGHTING_TERM"
+          )
+        ) {
+          const firstGaslighting = annotations.find(
+            (a) => a.marker === "ATO_GASLIGHTING_TERM"
+          );
+          const sentenceEnd = text.indexOf(".", firstGaslighting.start);
+          annotations.push({
+            marker_id: "SEM_GASLIGHTING_PATTERN",
+            family: "SEM",
+            start: Math.max(0, firstGaslighting.start - 10),
+            end: sentenceEnd > 0 ? sentenceEnd + 1 : firstGaslighting.end + 20,
+            score: 0.8,
+          });
+        }
+
+        return {
+          text,
+          annotations,
+          metadata: {
+            atomic_count: annotations.filter(
+              (a) => !a.marker_id.includes("PATTERN")
+            ).length,
+            composed_count: annotations.filter((a) =>
+              a.marker_id.includes("PATTERN")
+            ).length,
+            final_count: annotations.length,
+          },
+        };
+      }
+    </script>
+  </body>
+</html>
