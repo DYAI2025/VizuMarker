@@ -21,6 +21,7 @@ markdown = "^3.5.1"
 numpy = "^1.26.0"
 requests = "^2.31.0"
 PyYAML = "^6.0"
+PyJWT = "^2.8.0"  # Required for JWT authentication in security.py
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"

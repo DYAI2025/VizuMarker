@@ -740,12 +740,18 @@ class LD35Model:
         return rules
 
     def _evaluate_expression(self, expression: Optional[str], context: Dict[str, Any]) -> bool:
+        """
+        Safely evaluate activation expression using AST-based evaluation.
+        This prevents code injection by restricting to safe operations only.
+        """
         if not expression:
             return True
-        expr = expression.replace("&&", " and ").replace("||", " or ")
-        safe_globals = {"__builtins__": {}}
+
+        # Import safe evaluation function from sem_core
+        from ..engine.sem_core import eval_activation
+
         try:
-            return bool(eval(expr, safe_globals, context))
+            return eval_activation(expression, context)
         except Exception as exc:
             logger.debug("Failed to evaluate expression '%s': %s", expression, exc)
             return False
